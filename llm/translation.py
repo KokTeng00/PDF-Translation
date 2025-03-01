@@ -179,4 +179,9 @@ with torch.no_grad():
         refs.extend(decoded_labels)
 
 test_bleu_score = bleu_metric.compute(predictions=preds, references=[[ref] for ref in refs])["bleu"]
+
+export_dir = "./final_export"
+final_model.save_pretrained(export_dir)
+tokenizer.save_pretrained(export_dir)
+
 print("Final Test BLEU:", test_bleu_score)
