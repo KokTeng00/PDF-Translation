@@ -10,3 +10,4 @@ peft
 sacremoses
 datasets
 evaluate
+optuna
