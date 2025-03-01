@@ -6,16 +6,17 @@ from transformers import MarianMTModel, MarianTokenizer, DataCollatorForSeq2Seq
 from transformers.optimization import AdamW
 from datasets import Dataset
 import evaluate
-from peft import VBLoRAConfig, get_peft_model
+from peft import VBLoRAConfig, get_peft_model, TaskType
 
 model_name = "Helsinki-NLP/opus-mt-en-zh"
 model = MarianMTModel.from_pretrained(model_name)
 tokenizer = MarianTokenizer.from_pretrained(model_name)
 
 vb_lora_config = VBLoRAConfig(
-    task_type="SEQ_CLS",
+    task_type=TaskType.SEQ_2_SEQ_LM,
     r=4,
-    target_modules=["fc1", "fc2", "k_proj", "out_proj", "q_proj", "v_proj"],
+    target_modules=["fc1", "fc2", "self_attn.k_proj", "self_attn.q_proj", 
+                    "self_attn.v_proj", "self_attn.out_proj"],
     num_vectors=60,
     vector_length=256,
     save_only_topk_weights=True,
