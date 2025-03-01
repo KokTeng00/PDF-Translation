@@ -36,7 +36,7 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 
 def objective(trial):
-    batch_size = trial.suggest_categorical("batch_size", [16, 32, 64])
+    batch_size = trial.suggest_categorical("batch_size", [32, 64, 128])
     num_epochs = trial.suggest_int("num_epochs", 1, 3)
     dropout = trial.suggest_float("dropout", 0.1, 0.5, step=0.1)
     learning_rate = trial.suggest_float("learning_rate", 1e-5, 1e-4, log=True)
@@ -100,7 +100,7 @@ def objective(trial):
     return bleu_score
 
 study = optuna.create_study(direction="maximize")
-study.optimize(objective, n_trials=5)
+study.optimize(objective, n_trials=15)
 
 print("Number of finished trials:", len(study.trials))
 print("Best trial:")
@@ -179,9 +179,4 @@ with torch.no_grad():
         refs.extend(decoded_labels)
 
 test_bleu_score = bleu_metric.compute(predictions=preds, references=[[ref] for ref in refs])["bleu"]
-
-export_dir = "./final_export"
-final_model.save_pretrained(export_dir)
-tokenizer.save_pretrained(export_dir)
-
 print("Final Test BLEU:", test_bleu_score)
