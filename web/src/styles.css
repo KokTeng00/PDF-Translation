@@ -1,0 +1,89 @@
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body {
+  margin: 0;
+  height: 100%;
+  width: 100%;
+  font-family: 'Open Sans', sans-serif;
+  background-color: #fafafa;
+  overflow: hidden;
+}
+
+input[type="file"]#pdf-upload {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  padding: 6px 10px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 14px;
+  background-color: #fff;
+  color: #333;
+  cursor: pointer;
+}
+
+input[type="file"]#pdf-upload::-webkit-file-upload-button {
+  visibility: hidden;
+}
+
+input[type="file"]#pdf-upload::before {
+  content: "Choose PDF";
+  display: inline-block;
+  background: #fff;
+  border: 1px solid #ccc;
+  padding: 6px 10px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+input[type="file"]#pdf-upload:hover::before {
+  background-color: #f0f0f0;
+}
+
+button {
+  padding: 10px 12px;
+  border: none;
+  border-radius: 4px;
+  font-size: 14px;
+  cursor: pointer;
+  background-color: #2196F3;
+  color: #fff;
+  transition: background-color 0.2s ease;
+}
+
+button:hover:not(:disabled) {
+  background-color: #1976D2;
+}
+
+button:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+}
+
+#pdf-pages {
+  position: absolute;
+  top: 50px;
+  left: 0;
+  right: 0;
+  bottom: 50px;
+  overflow: hidden;
+  background-color: #fff;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  padding: 10px;
+}
+
+button#prev-button {
+  position: absolute;
+  bottom: 10px;
+  left: 10px;
+}
+
+button#next-button {
+  position: absolute;
+  bottom: 10px;
+  right: 10px;
+}

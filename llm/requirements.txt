@@ -1,0 +1,12 @@
+protobuf
+torch
+transformers
+matplotlib
+pandas
+seaborn
+tiktoken
+sentencepiece
+peft
+sacremoses
+datasets
+evaluate
