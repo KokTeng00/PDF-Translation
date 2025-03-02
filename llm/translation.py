@@ -36,7 +36,7 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 
 def objective(trial):
-    batch_size = trial.suggest_categorical("batch_size", [32, 64, 128])
+    batch_size = trial.suggest_categorical("batch_size", [16, 32, 64])
     num_epochs = trial.suggest_int("num_epochs", 1, 3)
     dropout = trial.suggest_float("dropout", 0.1, 0.5, step=0.1)
     learning_rate = trial.suggest_float("learning_rate", 1e-5, 1e-4, log=True)
@@ -83,7 +83,7 @@ def objective(trial):
         for batch in val_dataloader:
             batch = {k: v.to(device) for k, v in batch.items()}
             generated_ids = peft_model.generate(
-                batch["input_ids"],
+                input_ids=batch["input_ids"],
                 attention_mask=batch["attention_mask"],
                 max_length=128
             )
@@ -100,7 +100,7 @@ def objective(trial):
     return bleu_score
 
 study = optuna.create_study(direction="maximize")
-study.optimize(objective, n_trials=15)
+study.optimize(objective, n_trials=10)
 
 print("Number of finished trials:", len(study.trials))
 print("Best trial:")
@@ -167,7 +167,7 @@ with torch.no_grad():
     for batch in test_dataloader:
         batch = {k: v.to(device) for k, v in batch.items()}
         generated_ids = final_model.generate(
-            batch["input_ids"],
+            input_ids=batch["input_ids"],
             attention_mask=batch["attention_mask"],
             max_length=128
         )
