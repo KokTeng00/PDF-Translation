@@ -99,8 +99,11 @@ def objective(trial):
 
     return bleu_score
 
+def print_trial_callback(study, trial):
+    print(f"Trial {trial.number} finished with value: {trial.value} and params: {trial.params}")
+
 study = optuna.create_study(direction="maximize")
-study.optimize(objective, n_trials=20)
+study.optimize(objective, n_trials=20, callbacks=[print_trial_callback])
 
 print("Number of finished trials:", len(study.trials))
 print("Best trial:")
