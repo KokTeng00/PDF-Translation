@@ -37,7 +37,7 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 def objective(trial):
     batch_size = trial.suggest_categorical("batch_size", [16, 32, 64])
-    num_epochs = trial.suggest_int("num_epochs", 1, 3)
+    num_epochs = trial.suggest_int("num_epochs", 5, 10)
     dropout = trial.suggest_float("dropout", 0.1, 0.5, step=0.1)
     learning_rate = trial.suggest_float("learning_rate", 1e-5, 1e-4, log=True)
 
