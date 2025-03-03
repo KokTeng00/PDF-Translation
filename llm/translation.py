@@ -100,7 +100,7 @@ def objective(trial):
     return bleu_score
 
 study = optuna.create_study(direction="maximize")
-study.optimize(objective, n_trials=10)
+study.optimize(objective, n_trials=20)
 
 print("Number of finished trials:", len(study.trials))
 print("Best trial:")
