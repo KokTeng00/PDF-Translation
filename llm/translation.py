@@ -12,9 +12,9 @@ from peft import VBLoRAConfig, get_peft_model, TaskType
 model_name = "Helsinki-NLP/opus-mt-en-zh"
 tokenizer = MarianTokenizer.from_pretrained(model_name)
 
-train_df = pd.read_json("translation2019zh_train.json", lines=True)
-val_df = pd.read_json("translation2019zh_valid.json", lines=True)
-test_df = pd.read_json("translation2019zh_test.json", lines=True)
+train_df = pd.read_json("translation2019zh_train_sample.json", lines=True)
+val_df = pd.read_json("translation2019zh_valid_sample.json", lines=True)
+test_df = pd.read_json("translation2019zh_test_sample.json", lines=True)
 
 train_dataset = Dataset.from_pandas(train_df)
 val_dataset = Dataset.from_pandas(val_df)
