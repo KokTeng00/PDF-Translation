@@ -183,3 +183,6 @@ with torch.no_grad():
 
 test_bleu_score = bleu_metric.compute(predictions=preds, references=[[ref] for ref in refs])["bleu"]
 print("Final Test BLEU:", test_bleu_score)
+
+final_model.save_pretrained("final_trained_model")
+tokenizer.save_pretrained("final_trained_model")
