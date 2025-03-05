@@ -173,5 +173,5 @@ document.addEventListener("DOMContentLoaded", function() {
 });
 
 
-// cd /Users/ngkokteng/PycharmProjects/book_translator/web
+// cd /Users/ngkokteng/PycharmProjects/PDF-Translation/web
 // python3 -m http.server 8000

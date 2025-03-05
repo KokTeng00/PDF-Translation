@@ -1,0 +1,9 @@
+openai==0.28
+PyPDF2
+PyMuPDF
+fastapi
+mangum
+uvicorn
+python-multipart
+
+# brew install poppler

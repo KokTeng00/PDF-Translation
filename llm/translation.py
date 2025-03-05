@@ -85,7 +85,7 @@ def objective(trial):
             generated_ids = peft_model.generate(
                 input_ids=batch["input_ids"],
                 attention_mask=batch["attention_mask"],
-                max_length=128
+                max_length=512
             )
             decoded_preds = tokenizer.batch_decode(generated_ids, skip_special_tokens=True)
             labels = batch["labels"]
@@ -172,7 +172,7 @@ with torch.no_grad():
         generated_ids = final_model.generate(
             input_ids=batch["input_ids"],
             attention_mask=batch["attention_mask"],
-            max_length=128
+            max_length=512
         )
         decoded_preds = tokenizer.batch_decode(generated_ids, skip_special_tokens=True)
         labels = batch["labels"]
