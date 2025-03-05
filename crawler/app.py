@@ -49,7 +49,7 @@ async def extract_text_from_pdf(pdf: UploadFile = File(...)):
             print("-" * 20)
             
             processed_pages.append(page_data)
-        return {"pages": pages}
+        return {"pages": processed_pages}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 

@@ -13,6 +13,7 @@ html, body {
   overflow: hidden;
 }
 
+/* File upload styling */
 input[type="file"]#pdf-upload {
   position: absolute;
   top: 10px;
@@ -44,6 +45,7 @@ input[type="file"]#pdf-upload:hover::before {
   background-color: #f0f0f0;
 }
 
+/* Buttons styling */
 button {
   padding: 10px 12px;
   border: none;
@@ -64,6 +66,7 @@ button:disabled {
   cursor: not-allowed;
 }
 
+/* PDF pages container */
 #pdf-pages {
   position: absolute;
   top: 50px;
@@ -76,6 +79,7 @@ button:disabled {
   padding: 10px;
 }
 
+/* Navigation buttons */
 button#prev-button {
   position: absolute;
   bottom: 10px;
@@ -86,4 +90,28 @@ button#next-button {
   position: absolute;
   bottom: 10px;
   right: 10px;
+}
+
+/* Text layer styling for selectable text */
+.textLayer {
+  color: transparent;       /* Hides the text visually, keeps it selectable */
+  line-height: 1;
+  pointer-events: auto;     /* Allows text selection */
+  mix-blend-mode: multiply; /* Helps highlight text properly */
+}
+
+.textLayer span {
+  position: absolute;
+  white-space: pre;
+  transform-origin: 0 0;
+}
+
+/* Highlight color on selection */
+.textLayer ::selection {
+  background: rgba(0, 0, 255, 0.3);
+  color: #000; 
+}
+.textLayer ::-moz-selection {
+  background: rgba(0, 0, 255, 0.3);
+  color: #000;
 }
