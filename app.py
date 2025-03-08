@@ -1,7 +1,8 @@
 from fastapi import FastAPI, File, UploadFile, HTTPException, APIRouter
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 from mangum import Mangum
-from pdf_crawler import PDFTextExtractor
+from crawler.pdf_crawler import PDFTextExtractor
 import tempfile
 import os
 
@@ -35,7 +36,7 @@ async def extract_text_from_pdf(pdf: UploadFile = File(...)):
         processed_pages = []
         print("Extracted text from PDF:")
         for i, page in enumerate(pages, start=1):
-            pdf_text = page.get("pdf_text", "").strip()
+            pdf_text = page.get("extracted_text", "").strip()
             image_ocr_text = page.get("image_ocr_text", "").strip()
             
             page_data = {"pdf_text": pdf_text}
@@ -47,13 +48,13 @@ async def extract_text_from_pdf(pdf: UploadFile = File(...)):
                 print("Image OCR Text:")
                 print(image_ocr_text)
             print("-" * 20)
-            
             processed_pages.append(page_data)
         return {"pages": processed_pages}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
 app.include_router(router)
+app.mount("/", StaticFiles(directory="web", html=True), name="web")
 handler = Mangum(app)
 
 # Example usage with cURL:
