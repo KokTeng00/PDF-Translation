@@ -160,10 +160,6 @@ The script `llm/mt5_translation.py` demonstrates how to integrate VBLoRA with mT
 - **OpenAI API Errors:**  
   Confirm that your OpenAI API key is valid and that the model configuration aligns with supported parameters.
 
-## License
-
-Include your license information here (if applicable).
-
 ## Acknowledgments
 
 - Built with [FastAPI](https://fastapi.tiangolo.com/)
