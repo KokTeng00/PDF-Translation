@@ -30,14 +30,15 @@ The project provides a comprehensive pipeline to:
 ## Features
 
 - **PDF Extraction:**  
-  Leverages robust methods for text extraction and image OCR from PDF files.
+  Leverages robust methods for text extraction. For PDF extraction, OpenAI is used to summarize or extract text from images instead of conventional OCR techniques.
   
 - **Translation:**  
   Translates the extracted text into the desired language using OpenAI’s API.  
   Default target language is Chinese.
   
 - **Web User Interface:**  
-  Provides a simple and responsive interface for PDF uploads and displaying translated content.
+  Provides a simple and responsive interface for PDF uploads and displaying translated content.  
+  **Note:** When you click on the "Extract & Translate" button, please wait a minute as the system processes the translation until the translated text is shown.
   
 - **Model Fine-Tuning (Optional):**  
   Experiment with fine-tuning your translation model using mT5 along with VBLoRA for parameter-efficient training.  
@@ -56,7 +57,7 @@ PDF-Translation/
 ├── web/
 │   ├── main.html               # HTML file for the web interface.
 │   └── main.js                 # JavaScript handling file uploads and API interactions.
-│   └── styles.css              # C# script for frontend designing and styling
+│   └── styles.css              # CSS script for frontend designing and styling.
 └── ReadMe.md                   # Project documentation.
 ```
 
@@ -134,10 +135,11 @@ pip install -r requirements.txt
 ## Usage
 
 - **PDF Upload:**  
-  Use the web interface to upload a PDF file. The backend API extracts text (and applies OCR where necessary).
+  Use the web interface to upload a PDF file. The backend API extracts text (using OpenAI to either summarize or extract text from images) instead of traditional OCR methods.
 
 - **Translation:**  
-  The extracted text is sent to the `/translate` endpoint, translated using the OpenAI-powered service, and the resulting translation is displayed in the web interface.
+  The extracted text is sent to the `/translate` endpoint, translated using the OpenAI-powered service, and the resulting translation is displayed in the web interface.  
+  **Tip:** After clicking "Extract & Translate," please allow up to a minute for the processing to complete before the translated text is shown.
 
 ## Fine-Tuning with mT5 and VBLoRA
 
@@ -147,7 +149,7 @@ For users interested in custom translation models, the repository includes optio
   A multilingual text-to-text transformer pre-trained on extensive multilingual datasets. It serves as a robust base model for translation tasks across multiple languages.
 
 - **VBLoRA:**  
-  Stands for Varying Bottleneck Low-Rank Adaptation. This technique allows for efficient fine-tuning by adapting only a small subset of model parameters, which reduces computational costs while maintaining performance as reduce the catastrophic forgetting problem.
+  Stands for Varying Bottleneck Low-Rank Adaptation. This technique allows for efficient fine-tuning by adapting only a small subset of model parameters, reducing computational costs and mitigating catastrophic forgetting.
 
 The script `llm/mt5_translation.py` demonstrates how to integrate VBLoRA with mT5 for resource-friendly fine-tuning.  
 **Note:** Due to high computational costs and resource limitations, initial experiments were paused after a few optimization trials. However, if you have sufficient resources, the code is fully runnable for training your own model. Feel free to explore and extend this capability.
