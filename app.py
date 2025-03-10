@@ -3,8 +3,10 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from mangum import Mangum
 from crawler.pdf_crawler import PDFTextExtractor
+from llm .openai_translation import TranslationService
 import tempfile
 import os
+from pydantic import BaseModel
 
 app = FastAPI()
 
@@ -17,16 +19,21 @@ app.add_middleware(
     allow_headers=["Content-Type", "X-Amz-Date", "Authorization", "X-Api-Key"],
 )
 
-router = APIRouter(tags=["extract_text"])
+OPENAI_API_KEY = "your-openai-api-key"
+
+router = APIRouter(tags=["extract_text", "translate"])
+
+class TranslationRequest(BaseModel):
+    text: str
+    target_language: str = "Chinese"
+    model: str = "gpt-4o-mini"
 
 @router.post("/extract_text")
 async def extract_text_from_pdf(pdf: UploadFile = File(...)):
-    OPENAI_API_KEY = "sk-proj-"
     pdf_crawler = PDFTextExtractor(OPENAI_API_KEY)
     if pdf.content_type != "application/pdf":
         raise HTTPException(status_code=400, detail="Invalid file type. Only PDFs are allowed.")
     try:
-        # Save the uploaded PDF to a temporary file
         with tempfile.NamedTemporaryFile(suffix=".pdf", delete=False) as tmp_file:
             tmp_file.write(await pdf.read())
             tmp_path = tmp_file.name
@@ -52,6 +59,16 @@ async def extract_text_from_pdf(pdf: UploadFile = File(...)):
         return {"pages": processed_pages}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+    
+@router.post("/translate")
+async def translate_text(request: TranslationRequest):
+    try:
+        translation_service = TranslationService(OPENAI_API_KEY)
+        translated_text = translation_service.translate_text(request.text)
+        return {"translated_text": translated_text}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
 
 app.include_router(router)
 app.mount("/", StaticFiles(directory="web", html=True), name="web")

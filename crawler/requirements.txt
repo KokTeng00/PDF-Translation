@@ -5,5 +5,4 @@ fastapi
 mangum
 uvicorn
 python-multipart
-
-# brew install poppler
+pydantic

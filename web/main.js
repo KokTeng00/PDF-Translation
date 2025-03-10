@@ -16,7 +16,7 @@ document.addEventListener("DOMContentLoaded", function() {
     loadButton.disabled = true;
     loadButton.style.position = "absolute";
     loadButton.style.top = "10px";
-    loadButton.style.right = "150px";
+    loadButton.style.right = "260px";
     document.body.appendChild(loadButton);
 
     const deleteButton = document.createElement("button");
@@ -24,8 +24,16 @@ document.addEventListener("DOMContentLoaded", function() {
     deleteButton.disabled = true;
     deleteButton.style.position = "absolute";
     deleteButton.style.top = "10px";
-    deleteButton.style.right = "210px";
+    deleteButton.style.right = "190px";
     document.body.appendChild(deleteButton);
+
+    const extractButton = document.createElement("button");
+    extractButton.innerText = "Extract & Translate Text";
+    extractButton.disabled = true;
+    extractButton.style.position = "absolute";
+    extractButton.style.top = "10px";
+    extractButton.style.right = "10px";
+    document.body.appendChild(extractButton);
 
     const pagesContainer = document.createElement("div");
     pagesContainer.id = "pdf-pages";
@@ -47,7 +55,7 @@ document.addEventListener("DOMContentLoaded", function() {
     textContainer.style.overflow = "auto";
     textContainer.style.padding = "10px";
     textContainer.style.borderLeft = "1px solid #ccc";
-    textContainer.innerHTML = "<p>No extracted text yet.</p>";
+    textContainer.innerHTML = "<p>No translated text yet.</p>";
     document.body.appendChild(textContainer);
 
     const prevButton = document.createElement("button");
@@ -68,16 +76,8 @@ document.addEventListener("DOMContentLoaded", function() {
     nextButton.style.right = "10px";
     document.body.appendChild(nextButton);
 
-    const extractButton = document.createElement("button");
-    extractButton.innerText = "Extract Text";
-    extractButton.disabled = true;
-    extractButton.style.position = "absolute";
-    extractButton.style.top = "10px";
-    extractButton.style.right = "10px";
-    document.body.appendChild(extractButton);
-
     extractButton.addEventListener("click", function() {
-        extractText();
+        extractAndTranslateText();
     });
 
     fileInput.addEventListener("change", function(event) {
@@ -101,7 +101,7 @@ document.addEventListener("DOMContentLoaded", function() {
             extractedPages = [];
             
             pagesContainer.innerHTML = "";
-            textContainer.innerHTML = "<p>No extracted text yet.</p>";
+            textContainer.innerHTML = "<p>No translated text yet.</p>";
             
             fileInput.value = "";
             loadButton.disabled = true;
@@ -116,7 +116,7 @@ document.addEventListener("DOMContentLoaded", function() {
             return;
         }
         extractedPages = [];
-        textContainer.innerHTML = "<p>No extracted text yet.</p>";
+        textContainer.innerHTML = "<p>No translated text yet.</p>";
         
         const reader = new FileReader();
         reader.onload = function(e) {
@@ -172,26 +172,6 @@ document.addEventListener("DOMContentLoaded", function() {
             }).promise.then(function() {
                 console.log("Page rendered at scale:", scale);
             });
-            
-            page.getTextContent().then(function(textContent) {
-                const textLayerDiv = document.createElement("div");
-                textLayerDiv.className = "textLayer";
-                textLayerDiv.style.position = "absolute";
-                textLayerDiv.style.top = "0";
-                textLayerDiv.style.left = "0";
-                textLayerDiv.style.height = canvas.height + "px";
-                textLayerDiv.style.width = canvas.width + "px";
-                textLayerDiv.style.pointerEvents = "auto";
-                wrapper.appendChild(textLayerDiv);
-                
-                pdfjsLib.renderTextLayer({
-                    textContent: textContent,
-                    container: textLayerDiv,
-                    viewport: viewport,
-                    textDivs: [],
-                    enhanceTextSelection: true
-                });
-            });
         });
     }
 
@@ -202,17 +182,17 @@ document.addEventListener("DOMContentLoaded", function() {
         extractButton.disabled = !pdfDoc;
     }
 
-    function displayExtractedTextForCurrentPage() {
+    function displayTranslatedTextForCurrentPage() {
         const pageData = extractedPages[currentPage - 1];
         if (pageData) {
-            let html = `<h3>Page ${currentPage}:</h3>`;
+            let html = `<h3>Page ${currentPage} (Translated):</h3>`;
             if (pageData.pdf_text) {
                 html += `<p>${pageData.pdf_text}</p>`;
             } else {
-                html += `<p>No extracted text for this page.</p>`;
+                html += `<p>No translated text for this page.</p>`;
             }
             if (pageData.image_ocr_text) {
-                html += `<h4>Image OCR Text:</h4>`;
+                html += `<h4>Image OCR (Translated):</h4>`;
                 if (typeof pageData.image_ocr_text === 'string') {
                     html += `<p>${pageData.image_ocr_text}</p>`;
                 } else if (Array.isArray(pageData.image_ocr_text)) {
@@ -223,11 +203,35 @@ document.addEventListener("DOMContentLoaded", function() {
             }
             textContainer.innerHTML = html;
         } else {
-            textContainer.innerHTML = `<p>No extracted text for page ${currentPage} yet.</p>`;
+            textContainer.innerHTML = `<p>No translated text for page ${currentPage} yet.</p>`;
         }
     }
 
-    function extractText() {
+    async function translateText(text) {
+        try {
+            const response = await fetch("http://127.0.0.1:8000/translate", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({ 
+                    text: text, 
+                    model: "o3-mini", 
+                    target_language: "chinese" 
+                })
+            });
+            if (!response.ok) {
+                throw new Error("Translation API response was not ok");
+            }
+            const data = await response.json();
+            return data.translated_text;
+        } catch (error) {
+            console.error("Error translating text:", error);
+            return text;
+        }
+    }
+
+    function extractAndTranslateText() {
         if (!selectedFile) {
             alert("No file selected.");
             return;
@@ -245,23 +249,38 @@ document.addEventListener("DOMContentLoaded", function() {
             }
             return response.json();
         })
-        .then(data => {
-            extractedPages = data.pages;
-            console.log("Extracted pages:", extractedPages);
-            displayExtractedTextForCurrentPage();
+        .then(async data => {
+            const pages = data.pages;
+            for (let i = 0; i < pages.length; i++) {
+                if (pages[i].pdf_text) {
+                    pages[i].pdf_text = await translateText(pages[i].pdf_text);
+                }
+                if (pages[i].image_ocr_text) {
+                    if (typeof pages[i].image_ocr_text === "string") {
+                        pages[i].image_ocr_text = await translateText(pages[i].image_ocr_text);
+                    } else if (Array.isArray(pages[i].image_ocr_text)) {
+                        for (let j = 0; j < pages[i].image_ocr_text.length; j++) {
+                            pages[i].image_ocr_text[j] = await translateText(pages[i].image_ocr_text[j]);
+                        }
+                    }
+                }
+            }
+            extractedPages = pages;
+            console.log("Extracted and translated pages:", extractedPages);
+            displayTranslatedTextForCurrentPage();
         })
         .catch(error => {
             console.error("Error extracting text:", error);
             alert("Error extracting text. See console for details.");
         });
-    }    
+    }
 
     prevButton.addEventListener("click", function() {
         if (currentPage > 1) {
             currentPage--;
             renderPage(currentPage);
             updateButtons();
-            displayExtractedTextForCurrentPage();
+            displayTranslatedTextForCurrentPage();
         }
     });
 
@@ -270,7 +289,7 @@ document.addEventListener("DOMContentLoaded", function() {
             currentPage++;
             renderPage(currentPage);
             updateButtons();
-            displayExtractedTextForCurrentPage();
+            displayTranslatedTextForCurrentPage();
         }
     });
 
@@ -280,6 +299,7 @@ document.addEventListener("DOMContentLoaded", function() {
         }
     });
 });
+
 
 
 // cd /Users/ngkokteng/PycharmProjects/PDF-Translation/web

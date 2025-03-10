@@ -11,3 +11,6 @@ sacremoses
 datasets
 evaluate
 optuna
+flask
+openai
+pydantic
