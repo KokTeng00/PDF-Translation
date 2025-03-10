@@ -1,19 +1,16 @@
 document.addEventListener("DOMContentLoaded", function() {
-    // Global variables
     let selectedFile = null;
     let pdfDoc = null;
     let currentPage = 1;
     let totalPages = 0;
-    let extractedPages = []; // Array to store extraction result for each page
+    let extractedPages = [];
 
-    // Create file input
     const fileInput = document.createElement("input");
     fileInput.type = "file";
     fileInput.accept = "application/pdf";
     fileInput.id = "pdf-upload";
     document.body.appendChild(fileInput);
 
-    // Create Load button
     const loadButton = document.createElement("button");
     loadButton.innerText = "Load";
     loadButton.disabled = true;
@@ -22,7 +19,6 @@ document.addEventListener("DOMContentLoaded", function() {
     loadButton.style.right = "150px";
     document.body.appendChild(loadButton);
 
-    // Create Delete button
     const deleteButton = document.createElement("button");
     deleteButton.innerText = "Delete";
     deleteButton.disabled = true;
@@ -31,18 +27,16 @@ document.addEventListener("DOMContentLoaded", function() {
     deleteButton.style.right = "210px";
     document.body.appendChild(deleteButton);
 
-    // PDF pages container (60% width reserved for extracted text on right)
     const pagesContainer = document.createElement("div");
     pagesContainer.id = "pdf-pages";
     pagesContainer.style.position = "absolute";
     pagesContainer.style.top = "50px";
     pagesContainer.style.left = "0";
-    pagesContainer.style.right = "40%"; // Reserve 40% for text panel
+    pagesContainer.style.right = "40%";
     pagesContainer.style.bottom = "50px";
     pagesContainer.style.overflow = "hidden";
     document.body.appendChild(pagesContainer);
 
-    // Container for extracted text (40% width on the right)
     const textContainer = document.createElement("div");
     textContainer.id = "extracted-text";
     textContainer.style.position = "absolute";
@@ -56,7 +50,6 @@ document.addEventListener("DOMContentLoaded", function() {
     textContainer.innerHTML = "<p>No extracted text yet.</p>";
     document.body.appendChild(textContainer);
 
-    // Create Previous and Next buttons for PDF navigation
     const prevButton = document.createElement("button");
     prevButton.id = "prev-button";
     prevButton.innerText = "Previous";
@@ -75,7 +68,6 @@ document.addEventListener("DOMContentLoaded", function() {
     nextButton.style.right = "10px";
     document.body.appendChild(nextButton);
 
-    // Create Extract Text button
     const extractButton = document.createElement("button");
     extractButton.innerText = "Extract Text";
     extractButton.disabled = true;
@@ -88,7 +80,6 @@ document.addEventListener("DOMContentLoaded", function() {
         extractText();
     });
 
-    // Handle file selection
     fileInput.addEventListener("change", function(event) {
         const file = event.target.files[0];
         if (file && file.type === "application/pdf") {
@@ -101,14 +92,13 @@ document.addEventListener("DOMContentLoaded", function() {
         }
     });
 
-    // Delete loaded PDF and clear extracted text
     deleteButton.addEventListener("click", function() {
         if (pdfDoc) {
             pdfDoc = null;
             selectedFile = null;
             currentPage = 1;
             totalPages = 0;
-            extractedPages = []; // Clear stored extraction results
+            extractedPages = [];
             
             pagesContainer.innerHTML = "";
             textContainer.innerHTML = "<p>No extracted text yet.</p>";
@@ -120,13 +110,11 @@ document.addEventListener("DOMContentLoaded", function() {
         }
     });
 
-    // Load PDF file and clear any previous extraction results
     loadButton.addEventListener("click", function() {
         if (!selectedFile) {
             alert("No valid PDF file selected.");
             return;
         }
-        // Clear any old extraction results
         extractedPages = [];
         textContainer.innerHTML = "<p>No extracted text yet.</p>";
         
@@ -150,13 +138,10 @@ document.addEventListener("DOMContentLoaded", function() {
         reader.readAsArrayBuffer(selectedFile);
     });
 
-    // Render a page with both a canvas (visual) and a text layer (selectable)
     function renderPage(pageNum) {
         pdfDoc.getPage(pageNum).then(function(page) {
-            // Clear previous content
             pagesContainer.innerHTML = "";
             
-            // Determine scale to fit page into container
             const unscaledViewport = page.getViewport({ scale: 1 });
             const containerWidth = pagesContainer.clientWidth;
             const containerHeight = pagesContainer.clientHeight;
@@ -166,14 +151,12 @@ document.addEventListener("DOMContentLoaded", function() {
             
             const viewport = page.getViewport({ scale: scale });
             
-            // Create a wrapper div to hold the canvas and text layer
             const wrapper = document.createElement("div");
             wrapper.style.position = "relative";
             wrapper.style.width = viewport.width + "px";
             wrapper.style.height = viewport.height + "px";
             pagesContainer.appendChild(wrapper);
             
-            // Create the canvas for rendering the PDF page
             const canvas = document.createElement("canvas");
             canvas.width = viewport.width;
             canvas.height = viewport.height;
@@ -183,7 +166,6 @@ document.addEventListener("DOMContentLoaded", function() {
             wrapper.appendChild(canvas);
             const context = canvas.getContext("2d");
             
-            // Render the page into the canvas
             page.render({
                 canvasContext: context,
                 viewport: viewport
@@ -191,7 +173,6 @@ document.addEventListener("DOMContentLoaded", function() {
                 console.log("Page rendered at scale:", scale);
             });
             
-            // Render the text layer on top for selectable text
             page.getTextContent().then(function(textContent) {
                 const textLayerDiv = document.createElement("div");
                 textLayerDiv.className = "textLayer";
@@ -200,7 +181,7 @@ document.addEventListener("DOMContentLoaded", function() {
                 textLayerDiv.style.left = "0";
                 textLayerDiv.style.height = canvas.height + "px";
                 textLayerDiv.style.width = canvas.width + "px";
-                textLayerDiv.style.pointerEvents = "auto"; // Make text selectable
+                textLayerDiv.style.pointerEvents = "auto";
                 wrapper.appendChild(textLayerDiv);
                 
                 pdfjsLib.renderTextLayer({
@@ -214,7 +195,6 @@ document.addEventListener("DOMContentLoaded", function() {
         });
     }
 
-    // Update navigation and control button states
     function updateButtons() {
         prevButton.disabled = currentPage <= 1;
         nextButton.disabled = currentPage >= totalPages;
@@ -222,18 +202,15 @@ document.addEventListener("DOMContentLoaded", function() {
         extractButton.disabled = !pdfDoc;
     }
 
-    // Helper function: Display extracted text for the current page only
     function displayExtractedTextForCurrentPage() {
         const pageData = extractedPages[currentPage - 1];
         if (pageData) {
             let html = `<h3>Page ${currentPage}:</h3>`;
-            // Display only the text extracted from the PDF content.
             if (pageData.pdf_text) {
                 html += `<p>${pageData.pdf_text}</p>`;
             } else {
                 html += `<p>No extracted text for this page.</p>`;
             }
-            // Optionally, display OCR results if available
             if (pageData.image_ocr_text) {
                 html += `<h4>Image OCR Text:</h4>`;
                 if (typeof pageData.image_ocr_text === 'string') {
@@ -250,7 +227,6 @@ document.addEventListener("DOMContentLoaded", function() {
         }
     }
 
-    // Extract text from the PDF via backend API and store per page
     function extractText() {
         if (!selectedFile) {
             alert("No file selected.");
@@ -270,10 +246,8 @@ document.addEventListener("DOMContentLoaded", function() {
             return response.json();
         })
         .then(data => {
-            // Save extraction result from backend (an array of page results)
             extractedPages = data.pages;
             console.log("Extracted pages:", extractedPages);
-            // Update display to show only current page's extracted text
             displayExtractedTextForCurrentPage();
         })
         .catch(error => {
@@ -282,7 +256,6 @@ document.addEventListener("DOMContentLoaded", function() {
         });
     }    
 
-    // Navigation: Previous page
     prevButton.addEventListener("click", function() {
         if (currentPage > 1) {
             currentPage--;
@@ -292,7 +265,6 @@ document.addEventListener("DOMContentLoaded", function() {
         }
     });
 
-    // Navigation: Next page
     nextButton.addEventListener("click", function() {
         if (currentPage < totalPages) {
             currentPage++;
@@ -302,7 +274,6 @@ document.addEventListener("DOMContentLoaded", function() {
         }
     });
 
-    // Re-render current page on window resize
     window.addEventListener("resize", function() {
         if (pdfDoc) {
             renderPage(currentPage);
