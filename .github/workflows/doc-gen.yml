@@ -31,7 +31,7 @@ jobs:
         fetch-depth: 0  # Full history needed for analysis
     
     - name: Generate Documentation
-      uses: CodeDocs-io/Doc-Generation@main
+      uses: codedocs-io/doc-generation@main
       with:
         repository-url: ${{ github.event.repository.clone_url }}
         branch: ${{ github.ref_name }}
