@@ -1,0 +1,142 @@
+# Complete workflow for automatic documentation generation
+# Save this file as .github/workflows/documentation.yml in your repository
+
+name: Generate AI Documentation
+
+on:
+  push:
+    branches: [ main, master, develop ]
+  pull_request:
+    branches: [ main, master ]
+  workflow_dispatch:  # Allows manual trigger
+    inputs:
+      target_folder:
+        description: 'Specific folder to analyze (optional)'
+        required: false
+        default: ''
+      enable_visual:
+        description: 'Enable visual documentation with IDE screenshots'
+        required: false
+        default: false
+        type: boolean
+
+jobs:
+  generate-documentation:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0  # Full history needed for analysis
+    
+    - name: Generate Documentation
+      uses: ngkokteng/Doc-Generation@main
+      with:
+        repository-url: ${{ github.event.repository.clone_url }}
+        branch: ${{ github.ref_name }}
+        target-folder: ${{ github.event.inputs.target_folder || '' }}
+        enable-visual: ${{ github.event.inputs.enable_visual || 'false' }}
+      env:
+        # Optional: Use your own OpenAI API key for higher rate limits
+        # Add OPENAI_API_KEY to your repository secrets if you want to use your own key
+        OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+    
+    - name: Upload Documentation Artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: ai-documentation-${{ github.ref_name }}-${{ github.run_id }}
+        path: |
+          *_analysis.md
+          *_analysis.pdf
+          diagrams/
+          screenshots/
+        retention-days: 30
+    
+    - name: Comment on Pull Request
+      if: github.event_name == 'pull_request'
+      uses: actions/github-script@v7
+      with:
+        script: |
+          const fs = require('fs');
+          
+          // Find generated documentation files
+          const files = fs.readdirSync('.');
+          const docFiles = files.filter(f => f.endsWith('_analysis.md'));
+          
+          if (docFiles.length > 0) {
+            const docFile = docFiles[0];
+            const content = fs.readFileSync(docFile, 'utf8');
+            
+            // Extract first section as preview
+            const lines = content.split('\n');
+            const preview = lines.slice(0, 30).join('\n');
+            
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: `## 🤖 AI Documentation Generated
+              
+              Your code has been automatically analyzed and documented!
+              
+              **📁 Generated Files:**
+              ${docFiles.map(f => `- \`${f}\` (Markdown)`).join('\n')}
+              ${files.filter(f => f.endsWith('_analysis.pdf')).map(f => `- \`${f}\` (PDF)`).join('\n')}
+              
+              **📊 Documentation Preview:**
+              \`\`\`markdown
+              ${preview}...
+              \`\`\`
+              
+              **📥 How to Access:**
+              1. Go to the [Actions tab](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})
+              2. Download the "ai-documentation-..." artifact
+              3. Extract and view the complete documentation files
+              
+              The documentation includes:
+              - 🔧 API Documentation with examples
+              - 📚 Class and function documentation  
+              - 🏛️ Architecture analysis and diagrams
+              - ⚙️ Setup and configuration guides
+              - 🎯 Code flow and integration patterns`
+            });
+          }
+    
+    - name: Create Documentation Issue (on main branch)
+      if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+      uses: actions/github-script@v7
+      with:
+        script: |
+          const fs = require('fs');
+          const docFiles = fs.readdirSync('.').filter(f => f.endsWith('_analysis.md'));
+          
+          if (docFiles.length > 0) {
+            const title = `📚 Updated Documentation Available (${new Date().toISOString().split('T')[0]})`;
+            const body = `## 🤖 AI-Generated Documentation Updated
+            
+            Fresh documentation has been generated for the latest changes!
+            
+            **📁 Files Generated:**
+            ${docFiles.map(f => `- ${f}`).join('\n')}
+            
+            **📥 Download Location:**
+            [View in Actions Artifacts](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})
+            
+            **📋 Contents Include:**
+            - Complete API documentation with usage examples
+            - Architecture overview and system design
+            - Setup and installation guides
+            - Code structure and component relationships
+            - Visual diagrams and flowcharts
+            
+            This documentation is automatically generated and stays current with your codebase.`;
+            
+            github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: title,
+              body: body,
+              labels: ['documentation', 'auto-generated']
+            });
+          }
